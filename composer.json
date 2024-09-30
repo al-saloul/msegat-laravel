@@ -1,0 +1,29 @@
+{
+    "name": "alsaloul/msegat",
+    "description": "This is a Laravel package for Msegat. Its goal is to remove the complexity",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Alsaloul\\Msegat\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Alsaloul\\Msegat\\MsegatServiceProvider"
+            ],
+            "aliases": {
+                "Msegat": "Alsaloul\\Msegat\\Facades\\Msegat"
+            }
+        }
+    },
+    "authors": [
+        {
+            "name": "alsaloul",
+            "email": "alsaloul@example.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {}
+}
