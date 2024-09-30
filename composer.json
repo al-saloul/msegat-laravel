@@ -1,5 +1,5 @@
 {
-    "name": "alsaloul/msegat",
+    "name": "al-saloul/msegat",
     "description": "This is a Laravel package for Msegat. Its goal is to remove the complexity",
     "type": "library",
     "license": "MIT",
@@ -20,8 +20,8 @@
     },
     "authors": [
         {
-            "name": "alsaloul",
-            "email": "alsaloul@example.com"
+            "name": "Mohammed Alsaloul",
+            "email": "eng.alsaloul.mohammed@gmail.com"
         }
     ],
     "minimum-stability": "stable",
