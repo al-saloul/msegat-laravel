@@ -18,7 +18,7 @@ This is a Laravel package that integrates with the Msegat SMS service. It simpli
 To install the package, use Composer:
 
 ```bash
-composer require alsaloul/msegat
+composer require al-saloul/msegat-laravel
 ```
 
 
