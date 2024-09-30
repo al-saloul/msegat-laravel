@@ -35,6 +35,7 @@ Add the following environment variables to your `.env` file:
 
 
 ```bash
+MSEGAT_BASEURL="https://www.msegat.com"
 MSEGAT_USERNAME=your_msegat_username
 MSEGAT_API_KEY=your_msegat_api_key
 MSEGAT_USER_SENDER=your_msegat_sender_name
@@ -45,11 +46,11 @@ Alternatively, you can directly edit the `config/msegat.php` file to set the req
 To send an SMS message, use the `Msegat` facade:
 
 ```bash
-use Alsaloul\Msegat\Facades\Msegat;
+use Alsaloul\Msegat\Msegat;
 
 $response = Msegat::sendMessage('966123456789', 'Hello, this is a test message!');
 
-if ($response->status === 'success') {
+if ($response['code'] === '1') {  
     echo "Message sent successfully!";
 } else {
     echo "Failed to send message.";
@@ -85,12 +86,64 @@ $response = Msegat::sendMessage($numbers, $message);
 If credentials or required parameters are not set, exceptions will be thrown:
 
 ```bash
-$numbers = '96651xxxxxxx,96652xxxxxxx';
-$message = 'This is a broadcast message.';
-
-$response = Msegat::sendMessage($numbers, $message);
+try {
+    Msegat::sendMessage('966123456789', 'Testing error handling.');
+} catch (Exception $e) {
+    echo "Error: " . $e->getMessage();
+}
 ```
+## Status Code and Messages
+- `1` - Success
 
+- `M0000` - Success
+
+- `M0001` - Variables missing
+
+- `M0002` - Invalid login info
+
+- `M0022` - Exceed number of senders allowed
+
+- `M0023` - Sender Name is active or under activation or refused
+
+- `M0024` - Sender Name should be in English or number
+
+- `M0025` - Invalid Sender Name Length
+
+- `M0026` - Sender Name is already activated or not found
+
+- `M0027` - Activation Code is not Correct
+
+- `1010` - Variables missing
+
+- `1020` - Invalid login info
+
+- `1050` - MSG body is empty
+
+- `1060` - Balance is not enough
+
+- `1061` - MSG duplicated
+
+- `1064` - Free OTP , Invalid MSG content you should use "Pin Code is: xxxx", "Verification Code: xxxx" or upgrade your account and activate your sender to send any content
+
+- `1110` - Sender name is missing or incorrect
+
+- `1120` - Mobile numbers is not correct
+
+- `1140` - MSG length is too long
+
+- `M0029` - Invalid Sender Name - Sender Name should contain only letters, numbers and the maximum length should be 11 characters
+
+- `M0030` - Sender Name should ended with AD
+
+- `M0031` - Maximum allowed size of uploaded file is 5 MB
+
+- `M0032` - Only pdf,png,jpg and jpeg files are allowed!
+
+- `M0033` - Sender Type should be normal or whitelist only
+
+- `M0034` - Please Use POST Method
+
+- `M0036` - There is no any sender
 ## Contributing
 Contributions are welcome! Please follow these steps to contribute:
 
