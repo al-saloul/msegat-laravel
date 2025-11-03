@@ -10,8 +10,8 @@ This is a Laravel package that integrates with the Msegat SMS service. It simpli
 
 ## Requirements
 
-- Laravel 8+ or 9+ or 10+ or 11
-- PHP 7.4+ or PHP 8+
+- **Laravel:** 6 or higher  
+- **PHP:** 7 or higher
 
 ## Installation
 
