@@ -3,7 +3,6 @@
          backupGlobals="false"
          bootstrap="vendor/autoload.php"
          colors="true"
-         cacheDirectory=".phpunit.cache"
          failOnRisky="true"
          failOnWarning="true">
     <testsuites>
@@ -11,11 +10,6 @@
             <directory>tests</directory>
         </testsuite>
     </testsuites>
-    <source>
-        <include>
-            <directory>src</directory>
-        </include>
-    </source>
     <php>
         <env name="APP_ENV" value="testing"/>
     </php>

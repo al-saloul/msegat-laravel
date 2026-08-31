@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Alsaloul\Msegat\Tests;
 
 use Alsaloul\Msegat\MsegatClient;
+use Alsaloul\Msegat\MsegatServiceProvider;
 use Illuminate\Support\ServiceProvider;
+use ReflectionObject;
 
 class ServiceProviderTest extends TestCase
 {
@@ -31,10 +33,7 @@ class ServiceProviderTest extends TestCase
 
     public function test_it_registers_the_config_file_for_publishing(): void
     {
-        $paths = ServiceProvider::pathsToPublish(
-            \Alsaloul\Msegat\MsegatServiceProvider::class,
-            'msegat-config'
-        );
+        $paths = ServiceProvider::pathsToPublish(MsegatServiceProvider::class, 'msegat-config');
 
         $this->assertNotEmpty($paths, 'The msegat-config publish tag registered no paths.');
         $this->assertContains($this->app->configPath('msegat.php'), $paths);
@@ -48,9 +47,22 @@ class ServiceProviderTest extends TestCase
 
         $client = $this->app->make(MsegatClient::class);
 
-        $reflection = new \ReflectionObject($client);
+        $this->assertSame(5, $this->readProperty($client, 'timeout'));
+        $this->assertSame(2, $this->readProperty($client, 'retries'));
+    }
 
-        $this->assertSame(5, $reflection->getProperty('timeout')->getValue($client));
-        $this->assertSame(2, $reflection->getProperty('retries')->getValue($client));
+    /**
+     * Read a protected property.
+     *
+     * setAccessible() is a no-op from PHP 8.1 onwards but is still required on 8.0.
+     *
+     * @return mixed
+     */
+    private function readProperty(object $object, string $name)
+    {
+        $property = (new ReflectionObject($object))->getProperty($name);
+        $property->setAccessible(true);
+
+        return $property->getValue($object);
     }
 }

@@ -13,18 +13,19 @@ This is a Laravel package that integrates with the Msegat SMS service. It simpli
 
 ## Requirements
 
-| Package | PHP           | Laravel                |
-|---------|---------------|------------------------|
-| 2.x     | 8.1 &ndash; 8.5 | 10, 11, 12, 13       |
+| Package | PHP             | Laravel             |
+|---------|-----------------|---------------------|
+| 2.x     | 8.0 &ndash; 8.5 | 9, 10, 11, 12, 13   |
 
 The support matrix is verified in CI for every combination:
 
-| Laravel | PHP 8.1 | PHP 8.2 | PHP 8.3 | PHP 8.4 | PHP 8.5 |
-|---------|:-------:|:-------:|:-------:|:-------:|:-------:|
-| 10.x    | ✅      | ✅      | ✅      | ✅      | —       |
-| 11.x    | —       | ✅      | ✅      | ✅      | —       |
-| 12.x    | —       | ✅      | ✅      | ✅      | ✅      |
-| 13.x    | —       | —       | ✅      | ✅      | ✅      |
+| Laravel | PHP 8.0 | PHP 8.1 | PHP 8.2 | PHP 8.3 | PHP 8.4 | PHP 8.5 |
+|---------|:-------:|:-------:|:-------:|:-------:|:-------:|:-------:|
+| 9.x     | ✅      | ✅      | ✅      | —       | —       | —       |
+| 10.x    | —       | ✅      | ✅      | ✅      | ✅      | —       |
+| 11.x    | —       | —       | ✅      | ✅      | ✅      | —       |
+| 12.x    | —       | —       | ✅      | ✅      | ✅      | ✅      |
+| 13.x    | —       | —       | —       | ✅      | ✅      | ✅      |
 
 Composer resolves the right combination automatically, so you never need to pin a version yourself.
 
@@ -186,6 +187,7 @@ Http::assertSent(fn ($request) => $request->data()['msg'] === 'Hello!');
 
 The public API is unchanged, and `use Alsaloul\Msegat\Msegat;` with static calls keeps working.
 
+- Laravel 8 and PHP 7.4 are no longer supported. Laravel 9 on PHP 8.0 remains supported, so most 1.x installs upgrade without touching their runtime.
 - The `Msegat` facade is now functional. Previously its accessor pointed at an unbound `msegat` key, so calling it threw a binding resolution error; only the concrete class worked.
 - `sendMessage()` used to require an array and raised a PHP error when handed the string the documentation showed. Both are now accepted.
 - Prefer `Alsaloul\Msegat\Facades\Msegat` (or inject `Alsaloul\Msegat\MsegatClient`) in new code. `Alsaloul\Msegat\Msegat` remains as a backwards compatible alias.
