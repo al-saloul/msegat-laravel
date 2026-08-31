@@ -1,37 +1,28 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Alsaloul\Msegat;
 
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Config;
+use Alsaloul\Msegat\Facades\Msegat as MsegatFacade;
 
-class Msegat
+/**
+ * Backwards compatible entry point.
+ *
+ * Earlier releases shipped the implementation here and called it statically,
+ * so this stays a facade over the same container binding to keep
+ * `use Alsaloul\Msegat\Msegat; Msegat::sendMessage(...)` working untouched.
+ * New code should prefer {@see \Alsaloul\Msegat\Facades\Msegat} or inject
+ * {@see \Alsaloul\Msegat\MsegatClient} directly.
+ *
+ * @method static array sendMessage(array|string $numbers, string $message)
+ * @method static array payload(array|string $numbers, string $message)
+ * @method static array data(array|string $numbers, string $message)
+ * @method static string normalizeNumbers(array|string $numbers)
+ * @method static string url(string $endpoint)
+ *
+ * @see \Alsaloul\Msegat\MsegatClient
+ */
+class Msegat extends MsegatFacade
 {
-    /**
-     * Sends a message to the specified phone numbers using the MSEGAT SMS gateway.
-     *
-     * @param array $numbers The phone numbers to send the message to.
-     * @param string $message The message to be sent.
-     * @return array The response from the MSEGAT API.
-     */
-    public static function sendMessage($numbers, $message)
-    {
-        $baseURL = Config::get('msegat.base_url');
-        $username = Config::get('msegat.username');
-        $userSender = Config::get('msegat.user_sender');
-        $apiKey = Config::get('msegat.api_key');
-        $numbers =  implode(',', $numbers);
-
-        $payload = [
-            "userName" => $username,
-            "numbers" => $numbers,
-            "userSender" => $userSender,
-            "apiKey" => $apiKey,
-            "msg" => $message,
-        ];
-
-        $response = Http::post($baseURL . '/gw/sendsms.php', $payload);
-
-        return $response->json();
-    }
 }
