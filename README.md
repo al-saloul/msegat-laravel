@@ -6,12 +6,27 @@ This is a Laravel package that integrates with the Msegat SMS service. It simpli
 
 - Send SMS messages easily using the Msegat API.
 - Configurable credentials (username, API key, sender name) through the `.env` file.
-- Designed specifically for Laravel applications.
+- Accepts recipients as a string, a comma separated string, or an (even nested) array.
+- Fails fast with a clear exception when credentials, recipients, or the message body are missing.
+- Configurable timeout and retry policy.
+- Fully testable: use Laravel's `Http::fake()` or inject `MsegatClient` directly.
 
 ## Requirements
 
-- Laravel 8+ or 9+ or 10+ or 11
-- PHP 7.4+ or PHP 8+
+| Package | PHP           | Laravel                |
+|---------|---------------|------------------------|
+| 2.x     | 8.1 &ndash; 8.5 | 10, 11, 12, 13       |
+
+The support matrix is verified in CI for every combination:
+
+| Laravel | PHP 8.1 | PHP 8.2 | PHP 8.3 | PHP 8.4 | PHP 8.5 |
+|---------|:-------:|:-------:|:-------:|:-------:|:-------:|
+| 10.x    | ✅      | ✅      | ✅      | ✅      | —       |
+| 11.x    | —       | ✅      | ✅      | ✅      | —       |
+| 12.x    | —       | ✅      | ✅      | ✅      | ✅      |
+| 13.x    | —       | —       | ✅      | ✅      | ✅      |
+
+Composer resolves the right combination automatically, so you never need to pin a version yourself.
 
 ## Installation
 
@@ -21,18 +36,25 @@ To install the package, use Composer:
 composer require al-saloul/msegat
 ```
 
+The service provider and the `Msegat` alias are registered automatically through Laravel's package discovery.
 
 ## Publish Configuration
+
 To publish the configuration file, use the following command:
+
+```bash
+php artisan vendor:publish --tag=msegat-config
+```
+
+This will create a configuration file named `msegat.php` in your `config` folder. The original provider based form keeps working too:
 
 ```bash
 php artisan vendor:publish --provider="Alsaloul\Msegat\MsegatServiceProvider"
 ```
-This will create a configuration file named `msegat.php` in your `config` folder.
 
 ## Configuration
-Add the following environment variables to your `.env` file:
 
+Add the following environment variables to your `.env` file:
 
 ```bash
 MSEGAT_BASEURL="https://www.msegat.com"
@@ -40,59 +62,136 @@ MSEGAT_USERNAME=your_msegat_username
 MSEGAT_API_KEY=your_msegat_api_key
 MSEGAT_USER_SENDER=your_msegat_sender_name
 ```
+
+Optionally, tune the HTTP behaviour:
+
+```bash
+MSEGAT_TIMEOUT=30       # per request timeout, in seconds
+MSEGAT_RETRIES=0        # extra attempts when the gateway is unreachable
+MSEGAT_RETRY_DELAY=250  # pause between attempts, in milliseconds
+```
+
 Alternatively, you can directly edit the `config/msegat.php` file to set the required configuration.
 
 ## Usage
+
 To send an SMS message, use the `Msegat` facade:
 
-```bash
-use Alsaloul\Msegat\Msegat;
+```php
+use Alsaloul\Msegat\Facades\Msegat;
 
 $response = Msegat::sendMessage('966123456789', 'Hello, this is a test message!');
 
-if ($response['code'] === '1') {  
+if ($response['code'] === '1') {
     echo "Message sent successfully!";
 } else {
     echo "Failed to send message.";
 }
 ```
+
+### Dependency injection
+
+The client is bound as a singleton, so you can inject it anywhere instead of reaching for the facade:
+
+```php
+use Alsaloul\Msegat\MsegatClient;
+
+class OrderController
+{
+    public function __construct(private MsegatClient $msegat)
+    {
+    }
+
+    public function store()
+    {
+        $this->msegat->sendMessage('9665xxxxxxxx', 'Your order has been received.');
+    }
+}
+```
+
 ## Methods
+
 `Msegat::sendMessage($numbers, $message)`
-- $numbers: The phone numbers to send the message to, separated by commas. (e.g., `96651xxxxxxx`,`96652xxxxxxx`)
-- $message: The content of the message.
 
-This method will send the message to the given numbers using the Msegat API.
+- `$numbers`: the recipients. Accepts a single number (`'9665xxxxxxxx'`), a comma separated string (`'96651xxxxxxx,96652xxxxxxx'`), or an array (`['96651xxxxxxx', '96652xxxxxxx']`). Values are trimmed, de-duplicated, and blanks are dropped.
+- `$message`: the content of the message.
 
-`Msegat::data($numbers, $message)`
+Returns the decoded gateway response as an array. If the gateway answers in plain text rather than JSON, the response is normalised to `['code' => ..., 'message' => ...]` so `$response['code']` is always safe to read.
 
-This method generates the JSON payload required for sending SMS messages. It's used internally by the `sendMessage()` method.
+`Msegat::payload($numbers, $message)` &mdash; builds and validates the payload sent to the gateway. `Msegat::data($numbers, $message)` is a backwards compatible alias of the same method.
+
+`Msegat::normalizeNumbers($numbers)` &mdash; returns the comma separated recipient list the gateway expects.
 
 ## Examples
+
 ### Sending a Single Message
 
-```bash
+```php
 Msegat::sendMessage('9665xxxxxxxx', 'Hello from Msegat!');
 ```
 
-### Sending Multiple Messages
-```bash
-$numbers = '96651xxxxxxx,96652xxxxxxx';
+### Sending to Multiple Recipients
+
+```php
+$numbers = ['96651xxxxxxx', '96652xxxxxxx'];
 $message = 'This is a broadcast message.';
 
 $response = Msegat::sendMessage($numbers, $message);
 ```
 
-### Handling Errors
-If credentials or required parameters are not set, exceptions will be thrown:
+A comma separated string works just as well:
 
-```bash
+```php
+Msegat::sendMessage('96651xxxxxxx,96652xxxxxxx', 'This is a broadcast message.');
+```
+
+### Handling Errors
+
+If credentials or required parameters are not set, a `MsegatException` is thrown:
+
+```php
+use Alsaloul\Msegat\Exceptions\MsegatException;
+
 try {
     Msegat::sendMessage('966123456789', 'Testing error handling.');
-} catch (Exception $e) {
+} catch (MsegatException $e) {
     echo "Error: " . $e->getMessage();
 }
 ```
+
+`MsegatException` extends `RuntimeException`, so existing `catch (Exception $e)` blocks keep working. It is thrown when:
+
+- a required credential (`username`, `user_sender`, `api_key`) is blank;
+- no usable recipient was supplied;
+- the message body is empty;
+- the gateway could not be reached, or returned an empty response.
+
+### Testing
+
+Because the package uses Laravel's HTTP client, `Http::fake()` intercepts every request:
+
+```php
+use Illuminate\Support\Facades\Http;
+
+Http::fake([
+    '*' => Http::response(['code' => '1', 'message' => 'Success']),
+]);
+
+Msegat::sendMessage('9665xxxxxxxx', 'Hello!');
+
+Http::assertSent(fn ($request) => $request->data()['msg'] === 'Hello!');
+```
+
+## Upgrading from 1.x
+
+The public API is unchanged, and `use Alsaloul\Msegat\Msegat;` with static calls keeps working.
+
+- The `Msegat` facade is now functional. Previously its accessor pointed at an unbound `msegat` key, so calling it threw a binding resolution error; only the concrete class worked.
+- `sendMessage()` used to require an array and raised a PHP error when handed the string the documentation showed. Both are now accepted.
+- Prefer `Alsaloul\Msegat\Facades\Msegat` (or inject `Alsaloul\Msegat\MsegatClient`) in new code. `Alsaloul\Msegat\Msegat` remains as a backwards compatible alias.
+
 ## Status Code and Messages
+
 - `1` - Success
 
 - `M0000` - Success
@@ -144,7 +243,16 @@ try {
 - `M0034` - Please Use POST Method
 
 - `M0036` - There is no any sender
+
+## Testing the Package
+
+```bash
+composer install
+composer test
+```
+
 ## Contributing
+
 Contributions are welcome! Please follow these steps to contribute:
 
 1. Fork the repository.
@@ -154,5 +262,5 @@ Contributions are welcome! Please follow these steps to contribute:
 5. Create a new Pull Request.
 
 ## Support
-If you have any questions or issues, feel free to open an issue on the GitHub repository or contact the author via email at `eng.alsaloul.mohammed@gmail.com`.
 
+If you have any questions or issues, feel free to open an issue on the GitHub repository or contact the author via email at `eng.alsaloul.mohammed@gmail.com`.
