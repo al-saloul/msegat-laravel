@@ -1,11 +1,41 @@
 {
     "name": "al-saloul/msegat",
-    "description": "This is a Laravel package for Msegat. Its goal is to remove the complexity",
+    "description": "A Laravel package for the Msegat SMS gateway. Its goal is to remove the complexity.",
+    "keywords": [
+        "laravel",
+        "msegat",
+        "sms",
+        "otp",
+        "notifications",
+        "saudi-arabia"
+    ],
+    "homepage": "https://github.com/al-saloul/msegat-laravel",
     "type": "library",
     "license": "MIT",
+    "authors": [
+        {
+            "name": "Mohammed Alsaloul",
+            "email": "eng.alsaloul.mohammed@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^8.1",
+        "guzzlehttp/guzzle": "^7.5",
+        "illuminate/http": "^10.0|^11.0|^12.0|^13.0",
+        "illuminate/support": "^10.0|^11.0|^12.0|^13.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^8.22|^9.0|^10.0|^11.0",
+        "phpunit/phpunit": "^10.5|^11.0|^12.0"
+    },
     "autoload": {
         "psr-4": {
             "Alsaloul\\Msegat\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Alsaloul\\Msegat\\Tests\\": "tests/"
         }
     },
     "extra": {
@@ -18,12 +48,12 @@
             }
         }
     },
-    "authors": [
-        {
-            "name": "Mohammed Alsaloul",
-            "email": "eng.alsaloul.mohammed@gmail.com"
-        }
-    ],
+    "scripts": {
+        "test": "vendor/bin/phpunit"
+    },
+    "config": {
+        "sort-packages": true
+    },
     "minimum-stability": "stable",
-    "require": {}
+    "prefer-stable": true
 }

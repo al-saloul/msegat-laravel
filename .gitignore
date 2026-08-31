@@ -13,7 +13,9 @@
 Homestead.json
 Homestead.yaml
 auth.json
+composer.lock
 npm-debug.log
+phpunit.xml
 yarn-error.log
 /.fleet
 /.idea
